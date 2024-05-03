@@ -1,53 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import "./Countries.css";
 
-function Countries() {
+const Countries = () => {
   const [countries, setCountries] = useState([]);
-  useState(() => {
-    fetch("https://restcountries.com/v3.1/all")
-      .then((response) => response.json())
-      .then((data) => setCountries(data))
-      .catch((error) => console.error("Error fetching data", error));
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://restcountries.com/v3.1/all');
+        if (!response.ok) {
+          throw new Error('Failed to fetch countries');
+        }
+        const data = await response.json();
+        setCountries(data);
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const cardStyle = {
-    width: "200px",
-    border: "1px solid #ccc",
-    borderRadius: "10px",
-    margin: "10px",
-    padding: "10px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
   };
 
-  const containerStyle = {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-  };
-
-  const imageStyle = {
-    width: "100px",
-    height: "100px",
-  };
+  const filteredCountries = countries.filter((country) =>
+    country.name.common.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div style={containerStyle}>
-      {countries.map((country) => (
-        <div key={country.cca3} style={cardStyle}>
-          <img
-            src={country.flags.png}
-            alt={`Flag of ${country.name.common}`}
-            style={imageStyle}
-          />
-          <h2>{country.name.common}</h2>
-        </div>
-      ))}
+    <div className="countryDisplay">
+      <input
+        type="text"
+        placeholder="Search for countries..."
+        value={searchTerm}
+        onChange={handleSearch}
+        className="searchInput"
+      />
+      <div className="countryCards">
+        {filteredCountries.map((country) => (
+          <div key={country.cca3} className="countryCard">
+            <img src={country.flags.png} alt={`Flag of ${country.name.common}`} />
+            <p>{country.name.common}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
-}
+};
 
 export default Countries;
